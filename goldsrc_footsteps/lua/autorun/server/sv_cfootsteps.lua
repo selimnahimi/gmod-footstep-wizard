@@ -2,6 +2,15 @@
     Custom Footsteps
 -----------------------]]--
 
+local MODE_HL1 = 0
+local MODE_CS16 = 1
+local MODE_OP4 = 2
+
+-- List for the last played footstep sound for each player
+local playersLastFootstep = {
+
+}
+
 -- Set up footsteps for each material type
 local matFootstepSounds = {
 	[MAT_CONCRETE] = {
@@ -18,6 +27,12 @@ local matFootstepSounds = {
 		"player/gsrc/footsteps/pl_snow6.wav",
 	},
 	[MAT_DIRT] = {
+		"player/gsrc/footsteps/dirt1.wav",
+		"player/gsrc/footsteps/dirt2.wav",
+		"player/gsrc/footsteps/dirt3.wav",
+		"player/gsrc/footsteps/dirt4.wav",
+    },
+	[MAT_FOLIAGE] = {
 		"player/gsrc/footsteps/dirt1.wav",
 		"player/gsrc/footsteps/dirt2.wav",
 		"player/gsrc/footsteps/dirt3.wav",
@@ -41,11 +56,29 @@ local matFootstepSounds = {
         "player/gsrc/footsteps/metal3.wav",
         "player/gsrc/footsteps/metal4.wav",
     },
+    [MAT_TILE] = {
+        "player/gsrc/footsteps/tile1.wav",
+        "player/gsrc/footsteps/tile2.wav",
+        "player/gsrc/footsteps/tile3.wav",
+        "player/gsrc/footsteps/tile4.wav",
+    },
+    [MAT_VENT] = {
+        "player/gsrc/footsteps/metal1.wav",
+        "player/gsrc/footsteps/metal2.wav",
+        "player/gsrc/footsteps/metal3.wav",
+        "player/gsrc/footsteps/metal4.wav",
+    },
     [MAT_GRATE] = {
         "player/gsrc/footsteps/metalgrate1.wav",
         "player/gsrc/footsteps/metalgrate2.wav",
         "player/gsrc/footsteps/metalgrate3.wav",
         "player/gsrc/footsteps/metalgrate4.wav",
+    },
+    [MAT_SLOSH] = {
+        "player/gsrc/footsteps/slosh1.wav",
+        "player/gsrc/footsteps/slosh2.wav",
+        "player/gsrc/footsteps/slosh3.wav",
+        "player/gsrc/footsteps/slosh4.wav",
     },
     ["ladder"] = {
         "player/gsrc/footsteps/ladder1.wav",
@@ -63,8 +96,19 @@ local texFootstepType = {
 
 -- Play a random footstep sound at a player
 local function PlayRandomFootstep(ply, list, volume, foot)
-    local random = list[ math.random( #list ) ]
+	local random
+	local last = playersLastFootstep[ply]
+
+	repeat
+		random = list[ math.random( #list ) ]
+
+		-- exit if the list has only 1 element to avoid infinite loop
+		if (#list == 1) then break end
+	until (last != random)
+
 	ply:EmitSound( random, 75, 100, volume ) -- Play the footstep
+
+	playersLastFootstep[ply] = random
 end
 
 hook.Add( "PlayerFootstep", "CustomFootstep", function( ply, pos, foot, sound, volume, rf )
@@ -74,7 +118,12 @@ hook.Add( "PlayerFootstep", "CustomFootstep", function( ply, pos, foot, sound, v
         PlayRandomFootstep(ply, list, volume)
 
         return true
-    end
+	elseif (ply:WaterLevel() > 0) then
+		local list = matFootstepSounds[MAT_SLOSH]
+        PlayRandomFootstep(ply, list, volume)
+
+        return true
+	end
 
     -- Make a trace hull to check for the surface below the player
     local traceData = { 
@@ -99,7 +148,58 @@ hook.Add( "PlayerFootstep", "CustomFootstep", function( ply, pos, foot, sound, v
     -- Get the list of sounds and choose a random one out of it.
     -- If there's no list with the given mat type, return the list for MAT_CONCRETE
 	local list = matFootstepSounds[matType] or matFootstepSounds[MAT_CONCRETE]
+
     PlayRandomFootstep(ply, list, volume, foot)
 
 	return true -- Don't allow default footsteps, or other addon footsteps
 end )
+
+
+-- Overriding other sounds that do not have hooks...
+
+local wadeSounds = {
+	"player/gsrc/footsteps/wade1.wav",
+	"player/gsrc/footsteps/wade2.wav",
+	"player/gsrc/footsteps/wade3.wav",
+	"player/gsrc/footsteps/wade4.wav"
+}
+
+sound.Add( {
+	name = "Player.Swim",
+	channel = CHAN_STATIC,
+	volume = 0.5,
+	level = SNDLVL_NORM,
+	sound = wadeSounds
+} )
+
+sound.Add( {
+	name = "Player.Wade",
+	channel = CHAN_BODY,
+	volume = 0.25,
+	level = SNDLVL_75dB,
+	sound = wadeSounds
+} )
+
+sound.Add( {
+	name = "BaseEntity.EnterWater",
+	channel = CHAN_AUTO,
+	volume = 0.35,
+	level = SNDLVL_70dB,
+	sound = wadeSounds
+} )
+
+sound.Add( {
+	name = "BaseEntity.ExitWater",
+	channel = CHAN_AUTO,
+	volume = 0.3,
+	level = SNDLVL_70dB,
+	sound = wadeSounds
+} )
+
+sound.Add( {
+	name = "Physics.WaterSplash",
+	channel = CHAN_AUTO,
+	volume = 0.3,
+	level = SNDLVL_70dB,
+	sound = wadeSounds
+} )
