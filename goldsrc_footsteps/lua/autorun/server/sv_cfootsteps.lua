@@ -2,6 +2,12 @@
     Custom Footsteps
 -----------------------]]--
 
+CreateConVar("gsrc_footsteps_enabled", "1", FCVAR_REPLICATE, "Enable/Disable the GoldSrc Footstep addon")
+
+local function IsEnabled()
+	return GetConVar("gsrc_footsteps_enabled"):GetBool()
+end
+
 local MODE_HL1 = 0
 local MODE_CS16 = 1
 local MODE_OP4 = 2
@@ -112,6 +118,8 @@ local function PlayRandomFootstep(ply, list, volume, foot)
 end
 
 hook.Add( "PlayerFootstep", "CustomFootstep", function( ply, pos, foot, sound, volume, rf )
+	if (!IsEnabled()) then return false end
+
 	-- Player is on a ladder, skip the tracing stuff
     if ply:GetMoveType() == MOVETYPE_LADDER then
         local list = matFootstepSounds["ladder"]
@@ -154,7 +162,6 @@ hook.Add( "PlayerFootstep", "CustomFootstep", function( ply, pos, foot, sound, v
 	return true -- Don't allow default footsteps, or other addon footsteps
 end )
 
-
 -- Overriding other sounds that do not have hooks...
 
 local wadeSounds = {
@@ -164,42 +171,45 @@ local wadeSounds = {
 	"player/gsrc/footsteps/wade4.wav"
 }
 
-sound.Add( {
-	name = "Player.Swim",
-	channel = CHAN_STATIC,
-	volume = 0.5,
-	level = SNDLVL_NORM,
-	sound = wadeSounds
-} )
+if (IsEnabled()) then
 
-sound.Add( {
-	name = "Player.Wade",
-	channel = CHAN_BODY,
-	volume = 0.25,
-	level = SNDLVL_75dB,
-	sound = wadeSounds
-} )
+	sound.Add( {
+		name = "Player.Swim",
+		channel = CHAN_STATIC,
+		volume = 0.5,
+		level = SNDLVL_NORM,
+		sound = wadeSounds
+	} )
 
-sound.Add( {
-	name = "BaseEntity.EnterWater",
-	channel = CHAN_AUTO,
-	volume = 0.35,
-	level = SNDLVL_70dB,
-	sound = wadeSounds
-} )
+	sound.Add( {
+		name = "Player.Wade",
+		channel = CHAN_BODY,
+		volume = 0.25,
+		level = SNDLVL_75dB,
+		sound = wadeSounds
+	} )
 
-sound.Add( {
-	name = "BaseEntity.ExitWater",
-	channel = CHAN_AUTO,
-	volume = 0.3,
-	level = SNDLVL_70dB,
-	sound = wadeSounds
-} )
+	sound.Add( {
+		name = "BaseEntity.EnterWater",
+		channel = CHAN_AUTO,
+		volume = 0.35,
+		level = SNDLVL_70dB,
+		sound = wadeSounds
+	} )
 
-sound.Add( {
-	name = "Physics.WaterSplash",
-	channel = CHAN_AUTO,
-	volume = 0.3,
-	level = SNDLVL_70dB,
-	sound = wadeSounds
-} )
+	sound.Add( {
+		name = "BaseEntity.ExitWater",
+		channel = CHAN_AUTO,
+		volume = 0.3,
+		level = SNDLVL_70dB,
+		sound = wadeSounds
+	} )
+
+	sound.Add( {
+		name = "Physics.WaterSplash",
+		channel = CHAN_AUTO,
+		volume = 0.3,
+		level = SNDLVL_70dB,
+		sound = wadeSounds
+	} )
+end
