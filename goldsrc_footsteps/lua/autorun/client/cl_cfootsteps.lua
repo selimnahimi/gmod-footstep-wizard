@@ -2,15 +2,11 @@
     Custom Footsteps
 -----------------------]]--
 
--- On client simply disable footsteps altogether.
--- This is required, since otherwise the client keeps trying
--- to play the original sounds next to the custom ones.
+net.Receive("GoldSrcFootstepSound", function()
+	local ply = net.ReadEntity()
+	local file = net.ReadString()
 
-local function IsEnabled()
-	return GetConVar("gsrc_footsteps_enabled"):GetBool()
-end
-
-
-hook.Add( "PlayerFootstep", "CustomFootstep", function( ply, pos, foot, sound, volume, rf )
-	if (IsEnabled()) then return true end -- Return true disables anything default
+	if (ply != LocalPlayer()) then
+		PlayFootstep(ply, file)
+	end
 end)
