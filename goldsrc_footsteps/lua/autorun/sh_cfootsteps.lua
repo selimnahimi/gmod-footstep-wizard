@@ -161,7 +161,8 @@ function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
         net.WriteEntity(ply)
         net.WriteString(GetRandomFootstep(ply, list))
         net.Broadcast()
-    else
+    end
+    if CLIENT or game.SinglePlayer() then
         -- Play the footstep locally
         local file = GetRandomFootstep(ply, list)
         PlayFootstep(ply, file)
