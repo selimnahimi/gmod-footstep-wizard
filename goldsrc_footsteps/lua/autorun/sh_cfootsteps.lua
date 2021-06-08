@@ -167,8 +167,6 @@ function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 	return true -- Don't allow default footsteps, or other addon footsteps
 end
 
-hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
-
 if CLIENT then
     net.Receive("GoldSrcFootstepSound", function()
         local ply = net.ReadEntity()
@@ -179,6 +177,9 @@ if CLIENT then
         end
     end)
 end
+
+-- Hooks
+hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
 
 -- Overriding other sounds that do not have hooks...
 
