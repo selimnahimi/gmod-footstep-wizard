@@ -2,9 +2,7 @@ local MODE_HL1 = 0
 local MODE_CS16 = 1
 local MODE_OP4 = 2
 
-local function IsEnabled()
-	return GetConVar("gsrc_footsteps_enabled"):GetBool()
-end
+local cvarEnabled = CreateConVar("gsrc_footsteps_enabled", "1", FCVAR_REPLICATE, "Enable/Disable the GoldSrc Footstep addon")
 
 -- List for the last played footstep sound for each player
 local playersLastFootstep = {
@@ -116,7 +114,7 @@ local function GetRandomFootstep(ply, list)
 end
 
 function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
-	if (!IsEnabled()) then return false end
+	if (!cvarEnabled:GetBool()) then return false end
 
 	-- Player is on a ladder, skip the tracing stuff
     if ply:GetMoveType() == MOVETYPE_LADDER then
@@ -138,8 +136,7 @@ function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 		mins = Vector(-16, -16, 0),
 		maxs = Vector( 16, 16, 71),
 		filter = function(ent)
-			if ent == ply then return false end -- ignore self
-			return true
+			return ent != ply -- ignore self
 		end
 	}
 
@@ -167,17 +164,10 @@ function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
         local file = GetRandomFootstep(ply, list)
         PlayFootstep(ply, file)
     end
-
-    
-
 	return true -- Don't allow default footsteps, or other addon footsteps
 end
 
-if SERVER then
-    hook.Add( "PlayerFootstep", "SVGoldSrcCustomFootstep", GoldSrcFootstepHook)
-else
-    hook.Add( "PlayerFootstep", "CLGoldSrcCustomFootstep", GoldSrcFootstepHook)
-end
+hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
 
 if CLIENT then
     net.Receive("GoldSrcFootstepSound", function()
@@ -200,7 +190,7 @@ local wadeSounds = {
 	"player/gsrc/footsteps/wade4.wav"
 }
 
-if (IsEnabled()) then
+if (cvarEnabled:GetBool()) then
 
 	sound.Add( {
 		name = "Player.Swim",
