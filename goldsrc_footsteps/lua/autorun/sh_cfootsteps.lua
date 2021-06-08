@@ -3,6 +3,7 @@ local MODE_CS16 = 1
 local MODE_OP4 = 2
 
 local cvarEnabled = CreateConVar("gsrc_footsteps_enabled", "1", FCVAR_REPLICATE, "Enable/Disable the GoldSrc Footstep addon")
+local cvarFallEnabled = CreateConVar("gsrc_footsteps_fall", "1", FCVAR_REPLICATE, "Enable/Disable GoldSrc custom falldamage event")
 
 -- List for the last played footstep sound for each player
 local playersLastFootstep = {
@@ -86,6 +87,12 @@ local matFootstepSounds = {
     }
 }
 
+local falldmgSounds = {
+	"player/gsrc/bhit_flesh-1.wav",
+	"player/gsrc/bhit_flesh-2.wav",
+	"player/gsrc/bhit_flesh-3.wav",
+}
+
 -- Certain textures have concrete properties BUT WE DONT WANT THAT >:(
 -- Seriously having concrete footsteps on the SNOW on CS_OFFICE???
 local texFootstepType = {
@@ -113,7 +120,7 @@ local function GetRandomFootstep(ply, list)
     return random
 end
 
-function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
+local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 	if (!cvarEnabled:GetBool()) then return false end
 
 	-- Player is on a ladder, skip the tracing stuff
@@ -178,8 +185,28 @@ if CLIENT then
     end)
 end
 
+local function FallDamageHook(ply, speed)
+	if cvarFallEnabled:GetBool() then
+		local mp_falldamage = GetConVar("mp_falldamage"):GetBool()
+		local dmg = 10
+
+		if mp_falldamage then
+			dmg = math.max( 0, math.ceil( 0.2418 * speed - 125 ) )
+		end
+
+		local random = falldmgSounds[ math.random( #falldmgSounds ) ]
+
+		ply:EmitSound(random, 75, 100, 1 )
+		
+		ply:TakeDamage(dmg, nil, nil)
+
+		return 0
+	end
+end
+
 -- Hooks
 hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
+hook.Add( "GetFallDamage", "GoldSrcFallDamage", FallDamageHook)
 
 -- Overriding other sounds that do not have hooks...
 
