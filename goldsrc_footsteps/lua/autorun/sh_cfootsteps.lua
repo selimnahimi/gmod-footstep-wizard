@@ -197,8 +197,13 @@ local function FallDamageHook(ply, speed)
 		local random = falldmgSounds[ math.random( #falldmgSounds ) ]
 
 		ply:EmitSound(random, 75, 100, 1 )
+
+		local dmginfo = DamageInfo()
+		dmginfo:SetDamage(dmg)
+		dmginfo:SetDamageType(DMG_FALL)
+		dmginfo:SetAttacker(ply)
 		
-		ply:TakeDamage(dmg, nil, nil)
+		ply:TakeDamageInfo(dmginfo)
 
 		return 0
 	end
