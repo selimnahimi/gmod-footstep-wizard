@@ -6,6 +6,7 @@ hook.Add( "PopulateToolMenu", "GoldSrcFootstepOptions", function()
 	spawnmenu.AddToolMenuOption( "Options", "GoldSrc", "GoldSrcFootsteps", "#GoldSrc Footsteps", "", "", function( panel )
 		panel:ClearControls()
         panel:CheckBox("Enabled", "gsrc_footsteps_enabled")
+        panel:CheckBox("Enable custom fall sounds", "gsrc_footsteps_fall")
         panel:Help("The mode setting currently doesn't work.")
         local combobox = panel:ComboBox( "Mode", "gsrc_footstep_mode")
 
