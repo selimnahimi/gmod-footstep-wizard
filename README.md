@@ -4,4 +4,7 @@
 - Easy to toggle with a convar
 
 ## Planned features:
-- Different modes (for example, Opposing Force has different footstep sounds)
+
+## Planned features:
+- Modularity
+- GUI footstep selection
