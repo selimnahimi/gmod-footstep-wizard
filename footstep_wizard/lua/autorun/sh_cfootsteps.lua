@@ -211,7 +211,9 @@ local function FallDamageHook(ply, speed)
 			dmg = math.max( 0, math.ceil( 0.2418 * speed - 125 ) )
 		end
 
-		ply:EmitSound(matFootstepSounds["falldmg"][1] )
+		local choice = (matFootstepSounds["falldmg"] or {"Player.FallDamage"})[1]
+		
+		ply:EmitSound(choice)
 
 		local dmginfo = DamageInfo()
 		dmginfo:SetDamage(dmg)
