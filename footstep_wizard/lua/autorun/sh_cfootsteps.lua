@@ -24,13 +24,13 @@ local matFootstepSounds = {
 local footstep_packs = {}
 
 local function GFW_ChooseFootstepPack(pack_name)
+	if SERVER then
+		PrintMessage(HUD_PRINTTALK, "trying to choose "..pack_name)
+	end
 	matFootstepSounds = footstep_packs[pack_name]['sounds']
 end
 
 local function GFW_Concommand_PackSelect(ply, cmd, args, argStr)
-	if SERVER then
-		PrintMessage(HUD_PRINTTALK, "trying to choose "..argStr)
-	end
 	GFW_ChooseFootstepPack(argStr)
 end
 
@@ -75,6 +75,7 @@ local function GFW_Concommand_PackMenu(ply, cmd, args, argStr)
 		DermaImageButton:SetImage( "vgui/entities/weapon_laserdance" )	-- Set the material - relative to /materials/ directory
 		DermaImageButton:SetKeepAspect( true )
 		DermaImageButton.DoClick = function()
+			RunConsoleCommand( "say", "Hi" )
 			GFW_ChooseFootstepPack(v['name'])
 		end
 		
@@ -118,7 +119,8 @@ local texFootstepType = {
 }
 
 local function PlayFootstep(ply, file, volume)
-	PrintMessage(HUD_PRINTTALK, "playing ".. file)
+	if file == nil then return end
+	-- PrintMessage(HUD_PRINTTALK, "playing ".. file)
 	if CLIENT or game.SinglePlayer() then
 		-- Play the footstep locally
     	ply:EmitSound( file )
@@ -138,13 +140,13 @@ local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 
 	-- Player is on a ladder, skip the tracing stuff
     if ply:GetMoveType() == MOVETYPE_LADDER then
-		local choice = matFootstepSounds["ladder"][foot]
-        PlayFootstep(ply, list, volume)
+		local choice = ChooseFootstep("ladder", foot) or ({"Ladder.StepLeft", "Ladder.StepRight"})[foot]
+        PlayFootstep(ply, choice, volume)
 
         return true
 	elseif (ply:WaterLevel() > 0) then
 		local choice = matFootstepSounds[MAT_SLOSH][foot]
-        PlayFootstep(ply, list, volume)
+        PlayFootstep(ply, choice, volume)
 
         return true
 	end
@@ -170,7 +172,7 @@ local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 
     -- Get the list of sounds and choose a random one out of it.
     -- If there's no list with the given mat type, return the list for MAT_CONCRETE
-	local choice = (matFootstepSounds[matType] or matFootstepSounds["default"] or {"GoldSrc.GFW.Slosh.Left", "GoldSrc.GFW.Slosh.Right"})[foot]
+	local choice = ChooseFootstep(matType, foot)
 
 	PlayFootstep(ply, choice)
 
@@ -179,6 +181,14 @@ local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 	end
 
 	return true -- Don't allow default footsteps, or other addon footsteps
+end
+
+function ChooseFootstep(matType, foot)
+	return (matFootstepSounds[matType] or {nil, nil})[foot]
+end
+
+function ChooseFootstepOrDefault(matType, foot)
+	return ChooseFootstep(matType, foot) or matFootstepSounds["default"][foot]
 end
 
 if CLIENT then
@@ -201,7 +211,7 @@ local function FallDamageHook(ply, speed)
 			dmg = math.max( 0, math.ceil( 0.2418 * speed - 125 ) )
 		end
 
-		ply:EmitSound("GoldSrc.Footsteps.FallDmg" )
+		ply:EmitSound(matFootstepSounds["falldmg"][1] )
 
 		local dmginfo = DamageInfo()
 		dmginfo:SetDamage(dmg)
@@ -214,9 +224,17 @@ local function FallDamageHook(ply, speed)
 	end
 end
 
+local function SetupMoveHook(ply, mvd, cmd)
+	if mvd:KeyPressed(IN_JUMP) and ply:Alive() and ply:OnGround() then
+		local choice = ChooseFootstep("jump", 1)
+		PlayFootstep(ply, choice, 1)
+	end
+end
+
 -- Hooks
 hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
 hook.Add( "GetFallDamage", "GoldSrcFallDamage", FallDamageHook)
+hook.Add( "SetupMove", "GFWSetupMove", SetupMoveHook)
 
 -- Overriding other sounds that do not have hooks...
 
