@@ -172,7 +172,7 @@ local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 
     -- Get the list of sounds and choose a random one out of it.
     -- If there's no list with the given mat type, return the list for MAT_CONCRETE
-	local choice = ChooseFootstep(matType, foot)
+	local choice = ChooseFootstepOrDefault(matType, foot)
 
 	PlayFootstep(ply, choice)
 
