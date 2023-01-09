@@ -31,7 +31,7 @@ local function GFW_ChooseFootstepPack(pack_name)
 end
 
 local function GFW_Concommand_PackSelect(ply, cmd, args, argStr)
-	GFW_ChooseFootstepPack(argStr)
+	GFW_ChooseFootstepPack(args[1])
 end
 
 local function GFW_Concommand_PackMenu(ply, cmd, args, argStr)
@@ -74,9 +74,9 @@ local function GFW_Concommand_PackMenu(ply, cmd, args, argStr)
 		-- DermaButton:SetSize( 16, 16 )			-- OPTIONAL: Use instead of SizeToContents() if you know/want to fix the size
 		DermaImageButton:SetImage( "vgui/entities/weapon_laserdance" )	-- Set the material - relative to /materials/ directory
 		DermaImageButton:SetKeepAspect( true )
-		DermaImageButton.DoClick = function()
-			RunConsoleCommand( "say", "Hi" )
-			GFW_ChooseFootstepPack(v['name'])
+		DermaImageButton:SetText(v['name'])
+		function DermaImageButton:DoClick()
+			RunConsoleCommand( "gfw_pack_select", v['name'] )
 		end
 		
 	end
