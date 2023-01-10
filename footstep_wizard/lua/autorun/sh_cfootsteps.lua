@@ -145,10 +145,10 @@ local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 
         return true
 	elseif (ply:WaterLevel() > 0) then
-		local choice = matFootstepSounds[MAT_SLOSH][foot]
-        PlayFootstep(ply, choice, volume)
+		local choice = ChooseFootstep(MAT_SLOSH, foot) or ({"Water.StepLeft", "Water.StepRight"})[foot]
+		PlayFootstep(ply, choice, volume)
 
-        return true
+		return true
 	end
 
     -- Make a trace hull to check for the surface below the player
