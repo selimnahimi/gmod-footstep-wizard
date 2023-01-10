@@ -194,9 +194,6 @@ if CLIENT then
     end)
 end
 
-local function FallDamageHook(ply, speed)
-end
-
 local function SetupMoveHook(ply, mvd, cmd)
 	if mvd:KeyPressed(IN_JUMP) and ply:Alive() and ply:OnGround() then
 		local choice = matFootstepSounds["GFW"]["Jump"] or nil
@@ -212,7 +209,6 @@ end
 
 -- Hooks
 hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
-hook.Add( "GetFallDamage", "GoldSrcFallDamage", FallDamageHook)
 hook.Add( "SetupMove", "GFWSetupMove", SetupMoveHook)
 hook.Add( "OnPlayerHitGround", "GFWOnPlayerHitGround", OnPlayerHitGroundHook)
 
