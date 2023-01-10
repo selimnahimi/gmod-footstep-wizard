@@ -7,18 +7,10 @@ local cvarFallEnabled = CreateConVar("gsrc_footsteps_fall", "1", FCVAR_REPLICATE
 
 -- Set up footsteps for each material type
 local matFootstepSounds = {
-	[MAT_CONCRETE] = "GoldSrc.Footsteps.Concrete",
-	[MAT_SNOW] = "GoldSrc.Footsteps.Snow",
-	[MAT_DIRT] = "GoldSrc.Footsteps.Dirt",
-	[MAT_FOLIAGE] = "GoldSrc.Footsteps.Dirt",
-	[MAT_GRASS] = "GoldSrc.Footsteps.Dirt",
-	[MAT_SAND] = "GoldSrc.Footsteps.Dirt",
-    [MAT_METAL] = "GoldSrc.Footsteps.Metal",
-    [MAT_TILE] = "GoldSrc.Footsteps.Tile",
-    [MAT_VENT] = "GoldSrc.Footsteps.Metal",
-    [MAT_GRATE] = "GoldSrc.Footsteps.MetalGrate",
-    [MAT_SLOSH] = "GoldSrc.Footsteps.Slosh",
-    ["ladder"] = "GoldSrc.Footsteps.Ladder"
+	["default"] = {
+		"Concrete.StepLeft",
+		"Concrete.StepRight",
+	}
 }
 
 local footstep_packs = {}
@@ -184,11 +176,11 @@ local function GoldSrcFootstepHook( ply, pos, foot, sound, volume, rf )
 end
 
 function ChooseFootstep(matType, foot)
-	return (matFootstepSounds[matType] or {nil, nil})[foot]
+	return (matFootstepSounds["materials"][matType] or {nil, nil})[foot]
 end
 
 function ChooseFootstepOrDefault(matType, foot)
-	return ChooseFootstep(matType, foot) or matFootstepSounds["default"][foot]
+	return ChooseFootstep(matType, foot) or matFootstepSounds["materials"]["default"][foot]
 end
 
 if CLIENT then
@@ -203,43 +195,46 @@ if CLIENT then
 end
 
 local function FallDamageHook(ply, speed)
-	if cvarFallEnabled:GetBool() then
-		local mp_falldamage = GetConVar("mp_falldamage"):GetBool()
-		local dmg = 10
-
-		if mp_falldamage then
-			dmg = math.max( 0, math.ceil( 0.2418 * speed - 125 ) )
-		end
-
-		local choice = (matFootstepSounds["falldmg"] or {"Player.FallDamage"})[1]
-		
-		ply:EmitSound(choice)
-
-		local dmginfo = DamageInfo()
-		dmginfo:SetDamage(dmg)
-		dmginfo:SetDamageType(DMG_FALL)
-		dmginfo:SetAttacker(ply)
-		
-		ply:TakeDamageInfo(dmginfo)
-
-		return 0
-	end
 end
 
 local function SetupMoveHook(ply, mvd, cmd)
 	if mvd:KeyPressed(IN_JUMP) and ply:Alive() and ply:OnGround() then
-		local choice = ChooseFootstep("jump", 1)
+		local choice = matFootstepSounds["GFW"]["Jump"] or nil
 		PlayFootstep(ply, choice, 1)
 	end
+end
+
+local function OnPlayerHitGroundHook(ply, inWater, onFloater, speed)
+	if inWater then return end
+	local choice = matFootstepSounds["GFW"]["Land"] or nil
+	PlayFootstep(ply, choice, 1)
 end
 
 -- Hooks
 hook.Add( "PlayerFootstep", "GoldSrcCustomFootstep", GoldSrcFootstepHook)
 hook.Add( "GetFallDamage", "GoldSrcFallDamage", FallDamageHook)
 hook.Add( "SetupMove", "GFWSetupMove", SetupMoveHook)
+hook.Add( "OnPlayerHitGround", "GFWOnPlayerHitGround", OnPlayerHitGroundHook)
 
 -- Overriding other sounds that do not have hooks...
 
+hook.Add( "EntityEmitSound", "GFWEntityEmitSound", function( t )
+	-- PrintMessage(HUD_PRINTTALK, "sound: "..t.OriginalSoundName)
+	-- PrintMessage(HUD_PRINTTALK, t.Entity:GetClass())
+
+	if matFootstepSounds["overrides"] != nil then
+		for k,v in pairs(matFootstepSounds["overrides"]) do
+			if t.OriginalSoundName == k or t.SoundName == k then
+				local ent = t.Entity
+				ent:EmitSound(v)
+				PrintMessage(HUD_PRINTTALK, t.OriginalSoundName)
+				PrintMessage(HUD_PRINTTALK, t.SoundName)
+				PrintMessage(HUD_PRINTTALK, v)
+				return false
+			end
+		end
+	end
+end)
 
 local wadeSounds = {
 	"player/gsrc/footsteps/wade1.wav",
